@@ -62,6 +62,7 @@ body {
 }
 
 .pagination {
+  padding-bottom: 50px;
   display: flex;
   justify-content: center;
 }
@@ -70,7 +71,26 @@ body {
   display: none;
 }
 
-.page--active {
+.pagination__button {
+
+  width: 35px;
+  height: 35px;
+  border-radius: 5px;
+
+}
+
+.pagination__button:not(:disabled) {
+    border-color: #adadad;
+    background-color: #ebebeb;
+  color: #000;
+  cursor: pointer;
+}
+
+.page {
+  margin: 0 2px;
+}
+
+.page.page--active {
   background-color: #0d0dbe;
   color: #fff;
 }

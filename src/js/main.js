@@ -78,7 +78,7 @@ async function fetchImages(query) {
     image_type: 'photo',
     orientation: 'horizontal',
     safesearch: true,
-    currentPage,
+    page: currentPage,
     per_page: 40,
   };
 
@@ -142,27 +142,17 @@ function createImageCard(imagesData) {
   );
 
   gallery.insertAdjacentHTML('beforeend', markup.join(''));
-
-  // Scroll to the bottom of the gallery
-  const { height: cardHeight } = document
-    .querySelector('.gallery')
-    .firstElementChild.getBoundingClientRect();
-
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: 'smooth',
-  });
 }
 
 loadMoreImagesBtn.addEventListener('click', async (e) => {
   if (formInput.value.trim() !== query) {
+    gallery.innerHTML = '';
     query = formInput.value.trim();
 
     currentPage = 1;
   } else {
     currentPage += 1;
   }
-  gallery.innerHTML = '';
 
   try {
     const images = await fetchImages(query);
@@ -172,9 +162,6 @@ loadMoreImagesBtn.addEventListener('click', async (e) => {
     lightBox.refresh();
     checkPaginationVisibility();
     checkLoadMoreButtonVisibility(images.totalHits);
-
-    if (images.totalHits <= currentPage * 40) {
-    }
   } catch (error) {
     console.error('Error fetching additional images:', error);
   }
@@ -208,9 +195,11 @@ function makeTotalPageButtonsArray(totalHits) {
     { length: pages > 7 ? 7 : pages },
     (_, i) => i + 1
   );
+
   totalPageButtons[totalPageButtons.length - 1] = pages;
   if (pages > 7) {
     totalPageButtons[totalPageButtons.length - 2] = '...';
+    console.log('error is here');
   }
 }
 
@@ -232,9 +221,18 @@ if (currentPage === 1) prevButton.disabled = true;
 
 const nextButton = document.querySelector('.pagination__button.next');
 
-prevButton.addEventListener('click', () => {
+prevButton.addEventListener('click', async () => {
   if (currentPage > 1) {
     currentPage -= 1;
+
+    gallery.innerHTML = '';
+
+    const response = await fetchImages(query);
+
+    checkLoadMoreButtonVisibility(response.totalHits);
+
+    createImageCard(response.hits);
+    lightBox.refresh();
   }
 
   if (currentPage < pages) {
@@ -248,9 +246,18 @@ prevButton.addEventListener('click', () => {
   renderPaginationButtons();
 });
 
-nextButton.addEventListener('click', () => {
+nextButton.addEventListener('click', async () => {
   if (currentPage < pages) {
     currentPage += 1;
+
+    gallery.innerHTML = '';
+
+    const response = await fetchImages(query);
+
+    checkLoadMoreButtonVisibility(response.totalHits);
+
+    createImageCard(response.hits);
+    lightBox.refresh();
   }
 
   if (currentPage > 1) {
@@ -268,37 +275,39 @@ function renderPaginationButtons() {
   const paginationContainer = document.querySelector('.pagination__pages');
 
   const updatedButtons = totalPageButtons;
-  if (currentPage >= 1 && currentPage <= 4) {
-    updatedButtons[0] = 1;
-    updatedButtons[1] = 2;
-    updatedButtons[2] = 3;
-    updatedButtons[3] = 4;
-    updatedButtons[4] = 5;
-    updatedButtons[5] = '...';
+  if (totalPageButtons.length > 7) {
+    if (currentPage >= 1 && currentPage <= 4) {
+      updatedButtons[0] = 1;
+      updatedButtons[1] = 2;
+      updatedButtons[2] = 3;
+      updatedButtons[3] = 4;
+      updatedButtons[4] = 5;
+      updatedButtons[5] = '...';
+    }
+
+    if (currentPage > 4 && currentPage < pages - 3) {
+      updatedButtons[1] = '...';
+      updatedButtons[2] = currentPage - 1;
+      updatedButtons[3] = currentPage;
+      updatedButtons[4] = currentPage + 1;
+      updatedButtons[5] = '...';
+    }
+
+    if (currentPage >= pages - 3) {
+      updatedButtons[1] = '...';
+      updatedButtons[2] = pages - 4;
+      updatedButtons[3] = pages - 3;
+      updatedButtons[4] = pages - 2;
+      updatedButtons[5] = pages - 1;
+    }
   }
 
-  if (currentPage > 4 && currentPage < pages - 3) {
-    updatedButtons[1] = '...';
-    updatedButtons[2] = currentPage - 1;
-    updatedButtons[3] = currentPage;
-    updatedButtons[4] = currentPage + 1;
-    updatedButtons[5] = '...';
-  }
-
-  if (currentPage >= pages - 3) {
-    updatedButtons[1] = '...';
-    updatedButtons[2] = pages - 4;
-    updatedButtons[3] = pages - 3;
-    updatedButtons[4] = pages - 2;
-    updatedButtons[5] = pages - 1;
-  }
-
-  const buttonsMarkup = updatedButtons.map((page) => {
-    return `
+  const buttonsMarkup = updatedButtons.map(
+    (page) => `
     <button class='pagination__button page ${
       page === currentPage ? 'page--active' : ''
-    }'>${page}</button> `;
-  });
+    }'>${page}</button> `
+  );
 
   paginationContainer.innerHTML = buttonsMarkup.join('');
 
@@ -311,6 +320,7 @@ function renderPaginationButtons() {
         currentPage = pageNumber;
 
         renderPaginationButtons();
+
         if (currentPage === 1) {
           prevButton.disabled = true;
         } else {
@@ -326,6 +336,7 @@ function renderPaginationButtons() {
 
       const response = await fetchImages(query);
       makeTotalPageButtonsArray(response.totalHits);
+
       checkPaginationVisibility();
 
       checkLoadMoreButtonVisibility(response.totalHits);
@@ -333,6 +344,8 @@ function renderPaginationButtons() {
       gallery.innerHTML = '';
       createImageCard(response.hits);
       lightBox.refresh();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
   });
 }
