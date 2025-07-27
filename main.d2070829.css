@@ -1,0 +1,99 @@
+body {
+  margin: 0;
+}
+
+.gallery {
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.search-form {
+  display: flex;
+  position: sticky;
+  background-color: #0d0dbe;
+  padding: 15px;
+  justify-content: center;
+  top: 0;
+}
+
+.photo-image {
+  width: 400px;
+  display: flex;
+  height: 267px;
+}
+
+.photo-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.info {
+  display: flex;
+  justify-content: space-evenly;
+  text-align: center;
+}
+
+.load-more {
+  display: none;
+  margin: 50px auto;
+  background-color: #0d0dbe;
+  color: #fff;
+  width: 300px;
+  height: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s linear;
+}
+
+.load-more:hover {
+  border: 1px solid #000;
+  background-color: #fff;
+  color: #0d0dbe;
+}
+
+.load-more--disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.pagination {
+  padding-bottom: 50px;
+  display: flex;
+  justify-content: center;
+}
+
+.pagination--hidden {
+  display: none;
+}
+
+.pagination__button {
+
+  width: 35px;
+  height: 35px;
+  border-radius: 5px;
+
+}
+
+.pagination__button:not(:disabled) {
+    border-color: #adadad;
+    background-color: #ebebeb;
+  color: #000;
+  cursor: pointer;
+}
+
+.page {
+  margin: 0 2px;
+}
+
+.page.page--active {
+  background-color: #0d0dbe;
+  color: #fff;
+}
+
+
+/*# sourceMappingURL=/main.d2070829.css.map */
