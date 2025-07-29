@@ -1,17 +1,10 @@
 import Notiflix from 'notiflix';
-import axios from 'axios';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import { fetchImages } from './api.js';
+import { renderCards } from './render.js';
 
-const BASE_URL = 'https://pixabay.com/api';
-const API_KEY = '50096548-9b55e248e724d91cc3eb8f4be';
-
-axios.defaults.baseURL = BASE_URL;
-
-const form = document.getElementById('search-form');
-const gallery = document.querySelector('.gallery');
-const loadMoreImagesBtn = document.querySelector('.load-more');
-const formInput = form.querySelector('input');
+import { form, gallery, loadMoreImagesBtn, formInput } from './refs.js';
 
 let lightBox = new SimpleLightbox('.gallery a', {
   captions: true,
@@ -52,7 +45,7 @@ form.addEventListener('submit', async (e) => {
       );
       return;
     } else {
-      createImageCard(images.hits);
+      renderCards(images.hits, gallery);
       lightBox.refresh();
       checkLoadMoreButtonVisibility(totalHits);
       checkPaginationVisibility();
@@ -71,79 +64,6 @@ form.addEventListener('submit', async (e) => {
 
 // ASYNC / AWAIT
 
-async function fetchImages(query) {
-  const params = {
-    key: API_KEY,
-
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page: currentPage,
-    per_page: 40,
-  };
-
-  if (query) {
-    params.q = query;
-  }
-
-  const response = await axios.get(`/`, { params });
-
-  return response.data;
-}
-
-function createImageCard(imagesData) {
-  const markup = imagesData.map(
-    ({
-      id,
-      webformatURL,
-      largeImageURL,
-      tags,
-      likes,
-      views,
-      comments,
-      downloads,
-    }) => {
-      return `
-     <div class='photo-card'>
-  <a href='${largeImageURL}'>
-    <img
-      src='${webformatURL}'
-      alt='${tags}'
-      loading='lazy'
-      height='200'
-      width='360'
-    />
-  </a>
-  <div class='info'>
-    <p class='info-item'>
-      <b>Likes <br />
-      ${likes}
-      </b>
-    </p>
-    <p class='info-item'>
-      <b>Views <br />
-      ${views}
-      </b>
-    </p>
-    <p class='info-item'>
-      <b>Comments <br />
-      ${comments}
-      </b>
-    </p>
-    <p class='info-item'>
-      <b>Downloads <br />
-      ${downloads}
-      </b>
-    </p>
-  </div>
-</div>
-`;
-    }
-  );
-
-  gallery.insertAdjacentHTML('beforeend', markup.join(''));
-}
-
 loadMoreImagesBtn.addEventListener('click', async (e) => {
   if (formInput.value.trim() !== query) {
     gallery.innerHTML = '';
@@ -158,7 +78,7 @@ loadMoreImagesBtn.addEventListener('click', async (e) => {
     const images = await fetchImages(query);
     makeTotalPageButtonsArray(images.totalHits);
 
-    createImageCard(images.hits);
+    renderCards(images.hits, gallery);
     lightBox.refresh();
     checkPaginationVisibility();
     checkLoadMoreButtonVisibility(images.totalHits);
@@ -199,7 +119,6 @@ function makeTotalPageButtonsArray(totalHits) {
   totalPageButtons[totalPageButtons.length - 1] = pages;
   if (pages > 7) {
     totalPageButtons[totalPageButtons.length - 2] = '...';
-    console.log('error is here');
   }
 }
 
@@ -227,11 +146,11 @@ prevButton.addEventListener('click', async () => {
 
     gallery.innerHTML = '';
 
-    const response = await fetchImages(query);
+    const response = await fetchImages(query, currentPage);
 
     checkLoadMoreButtonVisibility(response.totalHits);
 
-    createImageCard(response.hits);
+    renderCards(response.hits, gallery);
     lightBox.refresh();
   }
 
@@ -252,11 +171,11 @@ nextButton.addEventListener('click', async () => {
 
     gallery.innerHTML = '';
 
-    const response = await fetchImages(query);
+    const response = await fetchImages(query, currentPage);
 
     checkLoadMoreButtonVisibility(response.totalHits);
 
-    createImageCard(response.hits);
+    renderCards(response.hits, gallery);
     lightBox.refresh();
   }
 
@@ -334,7 +253,7 @@ function renderPaginationButtons() {
         }
       }
 
-      const response = await fetchImages(query);
+      const response = await fetchImages(query, currentPage);
       makeTotalPageButtonsArray(response.totalHits);
 
       checkPaginationVisibility();
@@ -342,7 +261,7 @@ function renderPaginationButtons() {
       checkLoadMoreButtonVisibility(response.totalHits);
 
       gallery.innerHTML = '';
-      createImageCard(response.hits);
+      renderCards(response.hits, gallery);
       lightBox.refresh();
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
