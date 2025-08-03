@@ -1,4 +1,6 @@
-export function renderCards(imagesData, gallery) {
+
+
+function renderCards(imagesData, gallery) {
   const markup = imagesData.map(
     ({
       id,
@@ -50,3 +52,7 @@ export function renderCards(imagesData, gallery) {
 
   gallery.insertAdjacentHTML('beforeend', markup.join(''));
 }
+
+
+
+export { renderCards};

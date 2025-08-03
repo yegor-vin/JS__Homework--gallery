@@ -1,4 +1,4 @@
-export const { form, gallery, loadMoreImagesBtn, formInput } = {
+export const { form, gallery, loadMoreImagesBtn, formInput, prevButton, nextButton } = {
   form: document.getElementById('search-form'),
   gallery: document.querySelector('.gallery'),
   loadMoreImagesBtn: document.querySelector('.load-more'),

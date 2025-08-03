@@ -5,6 +5,12 @@ import { fetchImages } from './api.js';
 import { renderCards } from './render.js';
 
 import { form, gallery, loadMoreImagesBtn, formInput } from './refs.js';
+import { checkLoadMoreButtonVisibility } from './loadMore.js';
+import {makeTotalPageButtonsArray, checkPaginationVisibility} from './pagination.js';
+import { variables } from './variables.js';
+
+
+
 
 let lightBox = new SimpleLightbox('.gallery a', {
   captions: true,
@@ -12,9 +18,8 @@ let lightBox = new SimpleLightbox('.gallery a', {
   captionDelay: 250,
 });
 
-let query = formInput.value.trim();
+variables.query = formInput.value.trim();
 
-let currentPage = 1;
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -27,14 +32,14 @@ form.addEventListener('submit', async (e) => {
 
   loadMoreImagesBtn.style.display = 'none';
   gallery.innerHTML = '';
-  currentPage = 1;
+  variables.currentPage = 1;
 
-  if (formInput.value.trim() !== query) {
-    query = formInput.value.trim();
+  if (formInput.value.trim() !== variables.query) {
+    variables.query = formInput.value.trim();
   }
 
   try {
-    const images = await fetchImages(query);
+    const images = await fetchImages(variables.query, variables.currentPage);
 
     const totalHits = images.totalHits;
     makeTotalPageButtonsArray(totalHits);
@@ -47,7 +52,7 @@ form.addEventListener('submit', async (e) => {
     } else {
       renderCards(images.hits, gallery);
       lightBox.refresh();
-      checkLoadMoreButtonVisibility(totalHits);
+      checkLoadMoreButtonVisibility(totalHits, variables.currentPage, loadMoreImagesBtn);
       checkPaginationVisibility();
 
       Notiflix.Notify.success(
@@ -64,7 +69,7 @@ form.addEventListener('submit', async (e) => {
 
 // ASYNC / AWAIT
 
-loadMoreImagesBtn.addEventListener('click', async (e) => {
+/* loadMoreImagesBtn.addEventListener('click', async () => {
   if (formInput.value.trim() !== query) {
     gallery.innerHTML = '';
     query = formInput.value.trim();
@@ -75,40 +80,32 @@ loadMoreImagesBtn.addEventListener('click', async (e) => {
   }
 
   try {
-    const images = await fetchImages(query);
+    const images = await fetchImages(query, currentPage);
     makeTotalPageButtonsArray(images.totalHits);
 
     renderCards(images.hits, gallery);
     lightBox.refresh();
+    checkLoadMoreButtonVisibility(
+      images.totalHits,
+      currentPage,
+      loadMoreImagesBtn
+    );
     checkPaginationVisibility();
-    checkLoadMoreButtonVisibility(images.totalHits);
   } catch (error) {
     console.error('Error fetching additional images:', error);
   }
-});
-
-function checkLoadMoreButtonVisibility(totalImages) {
-  if (totalImages <= currentPage * 40) {
-    loadMoreImagesBtn.style.display = 'none';
-
-    Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
-  } else {
-    loadMoreImagesBtn.style.display = 'block';
-  }
-}
+}); */
 
 // PAGINATION
-
+/* 
 let TOTAL_ITEMS = 0;
 
 const PER_PAGE = 40;
 let pages = 0;
 
 let totalPageButtons = 0;
-
-function makeTotalPageButtonsArray(totalHits) {
+ */
+/* function makeTotalPageButtonsArray(totalHits) {
   TOTAL_ITEMS = totalHits;
   pages = Math.ceil(TOTAL_ITEMS / PER_PAGE);
   totalPageButtons = totalPageButtons = Array.from(
@@ -122,25 +119,11 @@ function makeTotalPageButtonsArray(totalHits) {
   }
 }
 
-function renderPagination() {
-  const pagination = `
-  <div class='pagination pagination--hidden' >
-  <button class='pagination__button prev'> < </button>
-  <div class='pagination__pages'></div>
-  <button class='pagination__button next'> > </button>
-  </div>`;
+ */
 
-  document.body.insertAdjacentHTML('beforeend', pagination);
-}
 
-renderPagination();
 
-const prevButton = document.querySelector('.pagination__button.prev');
-if (currentPage === 1) prevButton.disabled = true;
-
-const nextButton = document.querySelector('.pagination__button.next');
-
-prevButton.addEventListener('click', async () => {
+/* prevButton.addEventListener('click', async () => {
   if (currentPage > 1) {
     currentPage -= 1;
 
@@ -148,13 +131,17 @@ prevButton.addEventListener('click', async () => {
 
     const response = await fetchImages(query, currentPage);
 
-    checkLoadMoreButtonVisibility(response.totalHits);
+    checkLoadMoreButtonVisibility(
+      response.totalHits,
+      currentPage,
+      loadMoreImagesBtn
+    );
 
     renderCards(response.hits, gallery);
     lightBox.refresh();
   }
 
-  if (currentPage < pages) {
+  if (currentPage < variables.pages) {
     nextButton.disabled = false;
   }
 
@@ -162,18 +149,22 @@ prevButton.addEventListener('click', async () => {
     prevButton.disabled = true;
   }
 
-  renderPaginationButtons();
+  renderPaginationButtons({ pages, currentPage, totalPageButtons });
 });
 
 nextButton.addEventListener('click', async () => {
-  if (currentPage < pages) {
+  if (currentPage < variables.pages) {
     currentPage += 1;
 
     gallery.innerHTML = '';
 
     const response = await fetchImages(query, currentPage);
 
-    checkLoadMoreButtonVisibility(response.totalHits);
+    checkLoadMoreButtonVisibility(
+      response.totalHits,
+      currentPage,
+      loadMoreImagesBtn
+    );
 
     renderCards(response.hits, gallery);
     lightBox.refresh();
@@ -183,18 +174,20 @@ nextButton.addEventListener('click', async () => {
     prevButton.disabled = false;
   }
 
-  if (currentPage === pages) {
+  if (currentPage === variables.pages) {
     nextButton.disabled = true;
   }
 
-  renderPaginationButtons();
+  renderPaginationButtons({ totalPageButtons, pages, currentPage });
 });
+ */
 
-function renderPaginationButtons() {
+
+/* function renderPaginationButtons({ pages, currentPage, totalPageButtons }) {
   const paginationContainer = document.querySelector('.pagination__pages');
 
-  const updatedButtons = totalPageButtons;
-  if (totalPageButtons.length > 7) {
+  const updatedButtons = variables.totalPageButtons;
+  if (variables.totalPageButtons.length > 7) {
     if (currentPage >= 1 && currentPage <= 4) {
       updatedButtons[0] = 1;
       updatedButtons[1] = 2;
@@ -204,7 +197,7 @@ function renderPaginationButtons() {
       updatedButtons[5] = '...';
     }
 
-    if (currentPage > 4 && currentPage < pages - 3) {
+    if (currentPage > 4 && currentPage < variables.pages - 3) {
       updatedButtons[1] = '...';
       updatedButtons[2] = currentPage - 1;
       updatedButtons[3] = currentPage;
@@ -212,12 +205,12 @@ function renderPaginationButtons() {
       updatedButtons[5] = '...';
     }
 
-    if (currentPage >= pages - 3) {
+    if (currentPage >= variables.pages - 3) {
       updatedButtons[1] = '...';
-      updatedButtons[2] = pages - 4;
-      updatedButtons[3] = pages - 3;
-      updatedButtons[4] = pages - 2;
-      updatedButtons[5] = pages - 1;
+      updatedButtons[2] = variables.pages - 4;
+      updatedButtons[3] = variables.pages - 3;
+      updatedButtons[4] = variables.pages - 2;
+      updatedButtons[5] = variables.pages - 1;
     }
   }
 
@@ -238,7 +231,7 @@ function renderPaginationButtons() {
       if (pageNumber && pageNumber !== currentPage) {
         currentPage = pageNumber;
 
-        renderPaginationButtons();
+        renderPaginationButtons({ pages, currentPage, totalPageButtons });
 
         if (currentPage === 1) {
           prevButton.disabled = true;
@@ -246,7 +239,7 @@ function renderPaginationButtons() {
           prevButton.disabled = false;
         }
 
-        if (currentPage === pages) {
+        if (currentPage === variables.pages) {
           nextButton.disabled = true;
         } else {
           nextButton.disabled = false;
@@ -258,7 +251,11 @@ function renderPaginationButtons() {
 
       checkPaginationVisibility();
 
-      checkLoadMoreButtonVisibility(response.totalHits);
+      checkLoadMoreButtonVisibility(
+        response.totalHits,
+        currentPage,
+        loadMoreImagesBtn
+      );
 
       gallery.innerHTML = '';
       renderCards(response.hits, gallery);
@@ -271,10 +268,11 @@ function renderPaginationButtons() {
 
 function checkPaginationVisibility() {
   const pagination = document.querySelector('.pagination');
-  if (pages > 0) {
+  if (variables.pages > 0) {
     pagination.classList.remove('pagination--hidden');
-    renderPaginationButtons();
+    renderPaginationButtons({ pages, currentPage, totalPageButtons });
   } else {
     pagination.classList.add('pagination--hidden');
   }
 }
+ */
