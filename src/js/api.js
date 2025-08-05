@@ -6,7 +6,7 @@ const API_KEY = '50096548-9b55e248e724d91cc3eb8f4be';
 
 axios.defaults.baseURL = BASE_URL;
 
-export async function fetchImages(query, currentPage ) {
+export async function fetchImages(query, currentPage = 1) {
   console.log(currentPage);
   
   const params = {

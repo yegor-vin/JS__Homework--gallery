@@ -39,7 +39,7 @@ form.addEventListener('submit', async (e) => {
   }
 
   try {
-    const images = await fetchImages(variables.query, variables.currentPage);
+    const images = await fetchImages(variables.query, );
 
     const totalHits = images.totalHits;
     makeTotalPageButtonsArray(totalHits);

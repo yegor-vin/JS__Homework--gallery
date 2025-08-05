@@ -34,6 +34,7 @@ loadMoreImagesBtn.addEventListener('click', async () => {
 });
 
 function renderPagination() {
+
   document.body.insertAdjacentHTML(
     'beforeend',
     `
@@ -46,7 +47,7 @@ function renderPagination() {
   );
 }
 
-renderPagination();
+renderPagination()
 
 const prevButton = document.querySelector('.pagination__button.prev');
 if (variables.currentPage === 1) prevButton.disabled = true;
@@ -192,14 +193,14 @@ function renderPaginationButtons(pages, currentPage, totalPageButtons) {
     button.onclick = async () => {
       const pageNumber = parseInt(button.textContent, 10);
       if (pageNumber && pageNumber !== currentPage) {
-        currentPage = pageNumber;
-        console.log( currentPage === pageNumber);
+        variables.currentPage = pageNumber;
+    
         
         
 
         renderPaginationButtons(
           pages,
-          currentPage,
+          variables.currentPage,
           totalPageButtons
         );
         
